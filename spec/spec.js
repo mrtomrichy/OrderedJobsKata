@@ -1,3 +1,7 @@
+// Created by Tom Richardson 14/05/2015
+// Spec file for testing orderJobs function.
+// Tests defined here: http://invalidcast.tumblr.com/post/52980617776/the-ordered-jobs-kata
+
 var orderJobs = require('../order.js');
 
 describe("Jobs", function() {
