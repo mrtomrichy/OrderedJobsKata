@@ -1,0 +1,12 @@
+{
+  "name": "OrderedJobsKata",
+  "version": "0.0.1",
+  "description": "",
+  "repository": {
+    "private" : true
+  },
+  "author": "Tom Richardson",
+  "dependencies": {
+    "jasmine": "2.3.1"
+  }
+}
