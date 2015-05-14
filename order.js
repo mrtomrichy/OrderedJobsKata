@@ -2,47 +2,42 @@
 // Exports the orderJob function for use in the tests
 
 String.prototype.insert = function (index, string) {
-  if (index > 0)
-    return this.substring(0, index) + string + this.substring(index, this.length);
-  else
-    return string + this;
+  if (index > 0) return this.substring(0, index) + string + this.substring(index, this.length);
+  else           return string + this;
 };
 
 function orderJobs(instructions) {
   if(instructions === "") return "";
-  var instruction = instructions.split(',').map(function(element){
-    return new Instruction(element);
-  });
 
   var instructionMap = [];
-  instruction.forEach(function(element, index) {
-    instructionMap[element.name] = element;
+
+  instructions.split(',').forEach(function(instruction, index, arr) {
+    var object = new Instruction(instruction, 
+      function getDependency(key) {
+        return instructionMap[key];
+      });
+    instructionMap[object.name] = object;
   });
 
   var ordered = "";
-
-  instruction.forEach(function(element, index) {
-    ordered = addInstruction(element, instructionMap, ordered);
-  });
+  for(key in instructionMap) {
+    ordered = instructionMap.hasOwnProperty(key) 
+              ? addInstruction(instructionMap[key], ordered) 
+              : ordered;
+  }
 
   console.log(ordered);
   return ordered;
 };
 
-function addInstruction(instruction, instructionMap, output, chain){
+function addInstruction(instruction, output, chain) {
   if(typeof chain === 'undefined') chain = "";
-  if(chain.indexOf(instruction.name) !== -1) {
-    throw 'Circular dependency!';
-  }
-  if(output.indexOf(instruction.name) === -1){
-    if(instruction.dependency){
-      output = addInstruction(instructionMap[instruction.dependency], instructionMap, output, chain+instruction.name);
-      var dependencyIndex = output.indexOf(instruction.dependency);
-      if(dependencyIndex >= output.length){
-        output += instruction.name;
-      } else {
-        output = output.insert(dependencyIndex+1, instruction.name);
-      }
+  if(chain.indexOf(instruction.name) !== -1) throw 'Circular dependency!';
+  
+  if(output.indexOf(instruction.name) === -1) {
+    if(instruction.getDependency()){
+      output = addInstruction(instruction.getDependency(), output, chain+instruction.name);
+      output = output.insert(output.indexOf(instruction.getDependency().name)+1, instruction.name);
     } else {
       output += instruction.name;
     }
@@ -51,7 +46,7 @@ function addInstruction(instruction, instructionMap, output, chain){
   return output;
 };
 
-function Instruction(instruction){
+function Instruction(instruction, getDependency) {
   var _name, _dependency;
 
   _name = instruction[0];
@@ -60,7 +55,10 @@ function Instruction(instruction){
   if(_name === _dependency) throw "Instruction dependent on self";
   return {
     name: _name,
-    dependency: _dependency
+    getDependency: function() {
+      var dependency = getDependency(_dependency);
+      return typeof dependency === 'undefined' ? null : dependency;
+    }
   };
 };
 
